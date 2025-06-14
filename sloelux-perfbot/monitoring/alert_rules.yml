@@ -1,0 +1,90 @@
+groups:
+  - name: sloelux-perfbot-alerts
+    rules:
+      # Service Down Alert
+      - alert: SloeLuxPerfBotDown
+        expr: up{job="sloelux-perfbot"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: sloelux-perfbot
+        annotations:
+          summary: "SloeLux Performance Bot is down"
+          description: "SloeLux Performance Bot has been down for more than 1 minute"
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: http_request_duration_seconds{job="sloelux-perfbot"} > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: sloelux-perfbot
+        annotations:
+          summary: "High response time detected"
+          description: "API response time is {{ $value }}s, which is above the 5s threshold"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="sloelux-perfbot",status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: sloelux-perfbot
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      # Memory Usage High
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes{name="sloelux-perfbot-prod"} / container_spec_memory_limit_bytes{name="sloelux-perfbot-prod"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: sloelux-perfbot
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} of the limit"
+
+      # CPU Usage High
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{name="sloelux-perfbot-prod"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: sloelux-perfbot
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # Disk Space Low
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is {{ $value | humanizePercentage }} full"
+
+      # Performance Score Drop
+      - alert: PerformanceScoreDrop
+        expr: sloelux_performance_score < 70
+        for: 10m
+        labels:
+          severity: warning
+          service: sloelux-perfbot
+        annotations:
+          summary: "Website performance score dropped"
+          description: "Performance score is {{ $value }}, below the 70 threshold"
+
+      # Failed Optimizations
+      - alert: OptimizationFailures
+        expr: rate(sloelux_optimization_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: sloelux-perfbot
+        annotations:
+          summary: "High optimization failure rate"
+          description: "Optimization failure rate is {{ $value }} failures per second" 

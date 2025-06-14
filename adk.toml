@@ -1,0 +1,6 @@
+[project]
+name = "sloelux-perf-bot"
+runtime = "python3.11"
+
+[deploy.cloudrun]
+region = "us-central1" 

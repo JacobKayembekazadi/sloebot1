@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  sloelux-perfbot:
+    build: .
+    container_name: sloelux-perfbot
+    ports:
+      - "8000:8000"  # FastAPI server
+      - "9000:9000"  # MCP server
+    environment:
+      # Google PageSpeed Insights
+      - PSI_KEY=${PSI_KEY:-your_pagespeed_api_key_here}
+      
+      # Shopify Configuration
+      - SHOP_DOMAIN=${SHOP_DOMAIN:-sloelux.myshopify.com}
+      - SHOP_TOKEN=${SHOP_TOKEN:-your_shopify_access_token}
+      - THEME_ID_PREVIEW=${THEME_ID_PREVIEW:-your_preview_theme_id}
+      
+      # Slack Integration
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN:-your_slack_bot_token}
+      - SLACK_CHANNEL_ID=${SLACK_CHANNEL_ID:-your_slack_channel_id}
+      
+      # Database (Supabase)
+      - SUPABASE_URL=${SUPABASE_URL:-https://zskaczarzgeitxqriyuq.supabase.co}
+      - SUPABASE_KEY=${SUPABASE_KEY:-your_supabase_key}
+      
+      # Environment Settings
+      - NODE_ENV=${NODE_ENV:-production}
+      - DEBUG=${DEBUG:-false}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      
+      # Rate Limiting
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
+      
+    volumes:
+      - ./logs:/app/logs
+      - ./performance_log.json:/app/performance_log.json
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  logs:
+    driver: local 
